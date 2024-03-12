@@ -1,0 +1,77 @@
+{
+  "name": "svg-extract",
+  "displayName": "Svg Extract",
+  "version": "1.0.1",
+  "description": "Extract inline SVG to a new file",
+  "categories": [
+    "Formatters",
+    "Other"
+  ],
+  "bugs": {
+    "url": "https://github.com/aminya/svg-extract/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aminya/svg-extract.git"
+  },
+  "publisher": "aminya",
+  "type": "module",
+  "main": "./dist/extension.cjs",
+  "source": "./src/extension.ts",
+  "scripts": {
+    "build": "run-p build.tsc build.parcel",
+    "build.parcel": "cross-env NODE_ENV=production parcel build && babel  --keep-file-extension ./dist --out-dir dist --plugins @upleveled/babel-plugin-remove-node-prefix --compact --no-babelrc --source-maps true",
+    "build.tsc": "tsc --pretty --noEmit",
+    "format": "prettier --write .",
+    "prepare": "run-s build",
+    "test": "pnpm run build && node ./dist/test/runTest.js"
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "svgExtract.extract",
+        "title": "Extract SVG"
+      }
+    ]
+  },
+  "activationEvents": [
+    "*",
+    "onCommand:svgExtract.extract"
+  ],
+  "dependencies": {
+    "hasha": "^5.0.0"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.23.9",
+    "@babel/core": "^7.24.0",
+    "@types/glob": "^8.1.0",
+    "@types/mocha": "^10.0.6",
+    "@types/node": "^20.11.26",
+    "@types/vscode": "^1.87.0",
+    "@upleveled/babel-plugin-remove-node-prefix": "^1.0.5",
+    "@vscode/test-electron": "2.3.9",
+    "cross-env": "^7.0.3",
+    "desm": "^1.3.1",
+    "glob": "^10.3.10",
+    "mocha": "^10.3.0",
+    "npm-run-all2": "^6.1.2",
+    "parcel": "^2.12.0",
+    "prettier": "^3.2.5",
+    "prettier-config-atomic": "^4.0.0",
+    "typescript": "^5.4.2"
+  },
+  "engines": {
+    "node": ">=14.0.0",
+    "vscode": "^1"
+  },
+  "targets": {
+    "main": {
+      "context": "electron-main",
+      "includeNodeModules": {
+        "vscode": false
+      },
+      "outputFormat": "commonjs",
+      "optimize": true
+    }
+  }
+}

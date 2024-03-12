@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "strictNullChecks": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "noFallthroughCasesInSwitch": true,
+    "declaration": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "incremental": true,
+    "inlineSourceMap": false,
+    "inlineSources": false,
+    "preserveSymlinks": true,
+    "removeComments": false,
+    "lib": ["ES2022"],
+    "skipLibCheck": true,
+    "target": "ESNext",
+    "allowJs": true,
+    "esModuleInterop": true,
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "importHelpers": false,
+    "resolveJsonModule": true,
+    "outDir": "./dist"
+  },
+  "compileOnSave": false,
+  "include": ["./src"],
+  "exclude": ["./node_modules", "./**/dist"]
+}
