@@ -36,7 +36,6 @@
     ]
   },
   "activationEvents": [
-    "*",
     "onCommand:svgExtract.extract"
   ],
   "dependencies": {
