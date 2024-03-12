@@ -46,7 +46,16 @@ async function addExtractedFile(selection: vscode.Selection, constEditor: vscode
   const editorPath = constEditor.document.fileName
 
   const contentHash = await hash(svg, { algorithm: "md5" })
-  const fileName = `svg_${contentHash}`
+
+  // ask the user for the file name
+  let fileName =
+    (await vscode.window.showInputBox({
+      prompt: "Enter the SVG file name (without using spaces or special characters)",
+      value: `svg_${contentHash}`,
+    })) ?? `svg_${contentHash}`
+
+  // replace spaces and special characters with underscores
+  fileName = fileName.replace(/[^a-zA-Z0-9_]/gi, "_")
 
   const filePath = join(dirname(editorPath), `${fileName}.svg`)
 

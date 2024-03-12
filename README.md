@@ -26,17 +26,16 @@ After selecting the SVG and running the `Extract SVG` command, the file will be 
 
 ```jsx
 ---
-import svg_c3df3e49b6ebb2d18418b976058aeed6 from "./svg_c3df3e49b6ebb2d18418b976058aeed6.svg?raw"
+import chevron_left from "./chevron_left.svg?raw"
+
 ---
 
 <div id="some_button">
-  <Fragment set:html={svg_c3df3e49b6ebb2d18418b976058aeed6} />
-
+  <Fragment set:html={chevron_left} />
 </div>
-
 ```
 
-And file `svg_c3df3e49b6ebb2d18418b976058aeed6.svg` will be created in the same directory as the original file.
+And file `chevron_left.svg` will be created in the same directory as the original file.
 
 ![After](/images/astro-before.jpg)
 
