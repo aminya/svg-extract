@@ -3,3 +3,5 @@
 .gitignore
 **/*.map
 **/.eslintrc.json
+node_modules/
+.parcel-cache/
