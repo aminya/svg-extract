@@ -2,7 +2,11 @@
 
 Extracts inline SVGs into separate files, and imports them back. It supports `TypeScript`, `JavaScript`, `Astro`, etc.
 
-For example, given the following Astro file:
+<img src="images/icon.png" alt="Icon" width="200" height="200">
+
+## Demo
+
+Given the following Astro file:
 
 ```jsx
 ---

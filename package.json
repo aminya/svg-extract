@@ -1,12 +1,13 @@
 {
   "name": "svg-extract",
   "displayName": "Svg Extract",
-  "version": "1.0.1",
+  "version": "1.0.0",
   "description": "Extract inline SVG to a new file",
   "categories": [
     "Formatters",
     "Other"
   ],
+  "icon": "images/icon-small.jpg",
   "bugs": {
     "url": "https://github.com/aminya/svg-extract/issues"
   },
@@ -62,7 +63,7 @@
   },
   "engines": {
     "node": ">=14.0.0",
-    "vscode": "^1"
+    "vscode": "^1.50.0"
   },
   "targets": {
     "main": {
