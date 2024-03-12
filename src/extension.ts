@@ -59,12 +59,7 @@ async function addExtractedFile(selection: vscode.Selection, constEditor: vscode
 async function importExtractedSvg(selection: vscode.Selection, varEditor: vscode.TextEditor, fileName: string) {
   const language = varEditor.document.languageId
 
-  if (language === "javascript" || language === "typescript") {
-    await varEditor.edit((edit) => {
-      edit.insert(new Position(0, 0), `import ${fileName} from "./${fileName}.svg?raw"\n`)
-      edit.insert(selection.start, `{${fileName}}\n`)
-    })
-  } else if (language === "astro") {
+  if (language === "astro") {
     await varEditor.edit((edit) => {
       // insert the imports after --- in astro files
       const regex = /^---/m
@@ -76,6 +71,11 @@ async function importExtractedSvg(selection: vscode.Selection, varEditor: vscode
 
       edit.insert(new Position(line, 0), `import ${fileName} from "./${fileName}.svg?raw"\n`)
       edit.insert(selection.start, `<Fragment set:html=${fileName} />\n`)
+    })
+  } else {
+    await varEditor.edit((edit) => {
+      edit.insert(new Position(0, 0), `import ${fileName} from "./${fileName}.svg?raw"\n`)
+      edit.insert(selection.start, `{${fileName}}\n`)
     })
   }
 }
