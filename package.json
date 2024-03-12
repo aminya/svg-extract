@@ -1,7 +1,7 @@
 {
   "name": "svg-extract",
   "displayName": "Svg Extract",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Extract inline SVG to a new file",
   "categories": [
     "Formatters",
@@ -26,7 +26,7 @@
     "format": "prettier --write .",
     "prepare": "run-s build",
     "test": "pnpm run build && node ./dist/test/runTest.js",
-    "publish": "pnpm run build && vsce package --no-dependencies && vsce publish --no-dependencies"
+    "publish": "pnpm run build && vsce package --no-dependencies"
   },
   "contributes": {
     "commands": [

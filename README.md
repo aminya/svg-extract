@@ -30,7 +30,7 @@ import svg_c3df3e49b6ebb2d18418b976058aeed6 from "./svg_c3df3e49b6ebb2d18418b976
 ---
 
 <div id="some_button">
-  <Fragment set:html=svg_c3df3e49b6ebb2d18418b976058aeed6 />
+  <Fragment set:html={svg_c3df3e49b6ebb2d18418b976058aeed6} />
 
 </div>
 

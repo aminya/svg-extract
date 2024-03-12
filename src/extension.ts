@@ -70,7 +70,7 @@ async function importExtractedSvg(selection: vscode.Selection, varEditor: vscode
           : 0
 
       edit.insert(new Position(line, 0), `import ${fileName} from "./${fileName}.svg?raw"\n`)
-      edit.insert(selection.start, `<Fragment set:html=${fileName} />\n`)
+      edit.insert(selection.start, `<Fragment set:html={${fileName}} />\n`)
     })
   } else {
     await varEditor.edit((edit) => {
