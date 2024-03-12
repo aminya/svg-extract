@@ -1,7 +1,7 @@
 {
   "name": "svg-extract",
   "displayName": "Svg Extract",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Extract inline SVG to a new file",
   "categories": [
     "Formatters",

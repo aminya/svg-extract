@@ -4,6 +4,21 @@ Extracts inline SVGs into separate files, and imports them back. It supports `Ty
 
 <img src="images/icon.png" alt="Icon" width="200" height="200">
 
+## How to use
+
+1. Select the SVG you want to extract in the editor and run the `Extract SVG` command from the command palette (`Ctrl+Shift+P`).
+
+![Selecting](/images/astro-before.jpg)
+
+2. Name the svg file based on the preview and press `Enter`.
+
+![Naming](/images/astro-preview-svg.jpg)
+
+3. The file will be updated to import the new svg file.
+
+![After](/images/astro-after.jpg)
+
+
 ## Demo
 
 Given the following Astro file:
@@ -36,7 +51,3 @@ import chevron_left from "./chevron_left.svg?raw"
 ```
 
 And file `chevron_left.svg` will be created in the same directory as the original file.
-
-![After](/images/astro-before.jpg)
-
-![After](/images/astro-after.jpg)

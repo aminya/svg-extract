@@ -2,6 +2,7 @@ import vscode, { Position } from "vscode"
 import { async as hash } from "hasha"
 import { dirname, join } from "path"
 import fs from "fs"
+import { preview } from "./svg-preview"
 
 export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(vscode.commands.registerCommand("svgExtract.extract", moveSelectionsToNewFile))
@@ -47,12 +48,17 @@ async function addExtractedFile(selection: vscode.Selection, constEditor: vscode
 
   const contentHash = await hash(svg, { algorithm: "md5" })
 
+  // generate a preview of the extracted svg
+  const panel = preview(svg)
+
   // ask the user for the file name
   let fileName =
     (await vscode.window.showInputBox({
       prompt: "Enter the SVG file name (without using spaces or special characters)",
       value: `svg_${contentHash}`,
     })) ?? `svg_${contentHash}`
+
+  panel?.dispose()
 
   // replace spaces and special characters with underscores
   fileName = fileName.replace(/[^a-zA-Z0-9_]/gi, "_")
