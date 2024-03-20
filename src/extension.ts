@@ -1,8 +1,8 @@
 import vscode, { Position } from "vscode"
-import { async as hash } from "hasha"
 import { basename, dirname, extname, join, relative, resolve } from "path"
 import fs from "fs"
 import { preview } from "./svg-preview"
+import { nanoid } from "nanoid"
 
 export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(vscode.commands.registerCommand("svgExtract.extract", moveSelectionsToNewFile))
@@ -55,7 +55,7 @@ async function addExtractedFile(selection: vscode.Selection, constEditor: vscode
     return undefined
   }
 
-  const importInfo = await getImportInfo(constEditor, svg)
+  const importInfo = await getImportInfo(constEditor)
 
   panel?.dispose()
 
@@ -75,8 +75,8 @@ type ImportInfo = {
   importName: string
 }
 
-async function getImportInfo(constEditor: vscode.TextEditor, svg: string): Promise<ImportInfo> {
-  const defaultImportInfo = await generateDefaultImportInfo(constEditor, svg)
+async function getImportInfo(constEditor: vscode.TextEditor): Promise<ImportInfo> {
+  const defaultImportInfo = await generateDefaultImportInfo(constEditor)
 
   // ask the user for the import path
   let importPath =
@@ -112,40 +112,78 @@ function isAbsolutePath(importPath: string) {
 }
 
 /** Generate the default import info for the extracted svg */
-async function generateDefaultImportInfo(constEditor: vscode.TextEditor, svg: string): Promise<ImportInfo> {
+async function generateDefaultImportInfo(constEditor: vscode.TextEditor): Promise<ImportInfo> {
   const editorPath = constEditor.document.fileName
   const importBase = dirname(editorPath)
 
   // generate a hash from the svg content
-  const contentHash = await hash(svg, { algorithm: "md5" })
+  const identifier = nanoid(5).replace(/-/g, "_")
 
   return {
-    importPath: `./svg_${contentHash}.svg`,
+    importPath: `./svg_${identifier}.svg`,
     importBase,
-    importName: `Svg${contentHash}`,
+    importName: `Svg${identifier}`,
   }
 }
 
 async function importExtractedSvg(selection: vscode.Selection, varEditor: vscode.TextEditor, importInfo: ImportInfo) {
   const language = varEditor.document.languageId
 
+  let position: Position
   if (language === "astro") {
-    await varEditor.edit((edit) => {
-      // insert the imports after --- in astro files
-      const regex = /^---/m
-      const match = varEditor.document.getText().match(regex)
-      const line =
-        match !== null && match.index !== undefined
-          ? varEditor.document.positionAt(match.index + match[0].length).line + 1
-          : 0
+    // insert the imports after --- in astro files
+    const regex = /^---/m
+    const match = varEditor.document.getText().match(regex)
+    const line =
+      match !== null && match.index !== undefined
+        ? varEditor.document.positionAt(match.index + match[0].length).line + 1
+        : 0
 
-      edit.insert(new Position(line, 0), `import ${importInfo.importName} from "${importInfo.importPath}?raw"\n`)
-      edit.insert(selection.start, `<Fragment set:html={${importInfo.importName}} />\n`)
-    })
+    position = new Position(line, 0)
   } else {
-    await varEditor.edit((edit) => {
-      edit.insert(new Position(0, 0), `import ${importInfo.importName} from "${importInfo.importPath}?raw"\n`)
-      edit.insert(selection.start, `{${importInfo.importName}}\n`)
-    })
+    position = new Position(0, 0)
   }
+
+  // edit.insert(selection.start, `<Fragment set:html={${importInfo.importName}} />\n`)
+
+  // ask the user which import to use
+  const importTypes = [
+    { label: "raw content", description: `import ${importInfo.importName} from "${importInfo.importPath}?raw"` },
+    { label: "asset", description: `import ${importInfo.importName} from "${importInfo.importPath}"` },
+  ]
+  let importType = await vscode.window.showQuickPick(importTypes)
+  if (importType === undefined) {
+    importType = importTypes[0]
+  }
+
+  // ask the user which import to use
+  let expressions: { label: string; description: string }[] = [
+    { label: "inline innerHTML (e.g. Solid-js)", description: `<span innerHTML={${importInfo.importName}} />` },
+    {
+      label: "inline dangerouslySetInnerHTML (e.g. React)",
+      description: `<span dangerouslySetInnerHTML={{ __html: ${importInfo.importName} }} />`,
+    },
+    {
+      label: "image src",
+      description: `<img src={${importInfo.importName}.src} alt="${importInfo.importName} SVG" />`,
+    },
+    { label: "custom", description: `{${importInfo.importName}}` },
+  ]
+
+  if (language === "astro") {
+    expressions = [
+      { label: "Fragment (e.g. Astro)", description: `<Fragment set:html={${importInfo.importName}} />` },
+      ...expressions,
+    ]
+  }
+
+  let expression = await vscode.window.showQuickPick(expressions)
+  if (expression === undefined) {
+    expression = expressions[0]
+  }
+
+  await varEditor.edit(async (edit) => {
+    edit.insert(position, importType.description + "\n")
+    edit.insert(selection.start, expression.description + "\n")
+  })
 }
