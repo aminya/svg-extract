@@ -18,7 +18,6 @@ Extracts inline SVGs into separate files, and imports them back. It supports `Ty
 
 ![After](/images/astro-after.jpg)
 
-
 ## Demo
 
 Given the following Astro file:

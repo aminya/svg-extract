@@ -1,6 +1,6 @@
 import vscode, { Position } from "vscode"
 import { async as hash } from "hasha"
-import { dirname, join } from "path"
+import { basename, dirname, extname, join, relative, resolve } from "path"
 import fs from "fs"
 import { preview } from "./svg-preview"
 
@@ -27,13 +27,17 @@ async function moveSelectionsToNewFile() {
 
 async function moveSelectionToNewFile(selection: vscode.Selection, editor: vscode.TextEditor) {
   // extract the code to a new file
-  const fileName = await addExtractedFile(selection, editor)
+  const importInfo = await addExtractedFile(selection, editor)
+
+  if (importInfo === undefined) {
+    return
+  }
 
   // remove the selected code from the original file
   await deleteSelection(selection, editor)
 
   // import the extracted file back to the original file
-  await importExtractedSvg(selection, editor, fileName)
+  await importExtractedSvg(selection, editor, importInfo)
 }
 
 async function deleteSelection(selection: vscode.Selection, varEditor: vscode.TextEditor) {
@@ -44,34 +48,85 @@ async function deleteSelection(selection: vscode.Selection, varEditor: vscode.Te
 
 async function addExtractedFile(selection: vscode.Selection, constEditor: vscode.TextEditor) {
   const svg = constEditor.document.getText(selection)
-  const editorPath = constEditor.document.fileName
-
-  const contentHash = await hash(svg, { algorithm: "md5" })
 
   // generate a preview of the extracted svg
   const panel = preview(svg)
+  if (panel === undefined) {
+    return undefined
+  }
 
-  // ask the user for the file name
-  let fileName =
-    (await vscode.window.showInputBox({
-      prompt: "Enter the SVG file name (without using spaces or special characters)",
-      value: `svg_${contentHash}`,
-    })) ?? `svg_${contentHash}`
+  const importInfo = await getImportInfo(constEditor, svg)
 
   panel?.dispose()
 
-  // replace spaces and special characters with underscores
-  fileName = fileName.replace(/[^a-zA-Z0-9_]/gi, "_")
-
-  const filePath = join(dirname(editorPath), `${fileName}.svg`)
-
   // write the content to a new file
+  const filePath = resolve(join(importInfo.importBase, importInfo.importPath))
   fs.writeFileSync(filePath, svg, "utf-8")
 
-  return fileName
+  return importInfo
 }
 
-async function importExtractedSvg(selection: vscode.Selection, varEditor: vscode.TextEditor, fileName: string) {
+type ImportInfo = {
+  /** The relative path of the file with respect to the editor folder */
+  importPath: string
+  /** The folder of the current editor */
+  importBase: string
+  /** The name of the import */
+  importName: string
+}
+
+async function getImportInfo(constEditor: vscode.TextEditor, svg: string): Promise<ImportInfo> {
+  const defaultImportInfo = await generateDefaultImportInfo(constEditor, svg)
+
+  // ask the user for the import path
+  let importPath =
+    (await vscode.window.showInputBox({
+      prompt: "Enter the SVG import path (a relative path to the current file)",
+      value: defaultImportInfo.importPath,
+    })) ?? defaultImportInfo.importPath
+
+  // check if the file is absolute (cross-platform)
+  if (isAbsolutePath(importPath)) {
+    vscode.window.showWarningMessage("The import path must be relative to the current file")
+    importPath = relative(defaultImportInfo.importBase, resolve(importPath))
+  }
+
+  // add ./ to the import path if it doesn't start with it
+  if (!importPath.startsWith(".")) {
+    importPath = `./${importPath}`
+  }
+
+  // Create the import name from the file name (replace spaces and special characters with underscores)
+  const extension = extname(importPath)
+  const importName = basename(importPath, extension).replace(/[^a-zA-Z0-9_]/gi, "_")
+
+  return {
+    importPath,
+    importBase: defaultImportInfo.importBase,
+    importName,
+  }
+}
+
+function isAbsolutePath(importPath: string) {
+  return importPath.startsWith("/") || importPath.match(/^[a-zA-Z]:\\/)
+}
+
+/** Generate the default import info for the extracted svg */
+async function generateDefaultImportInfo(constEditor: vscode.TextEditor, svg: string): Promise<ImportInfo> {
+  const editorPath = constEditor.document.fileName
+  const importBase = dirname(editorPath)
+
+  // generate a hash from the svg content
+  const contentHash = await hash(svg, { algorithm: "md5" })
+
+  return {
+    importPath: `./svg_${contentHash}.svg`,
+    importBase,
+    importName: `Svg${contentHash}`,
+  }
+}
+
+async function importExtractedSvg(selection: vscode.Selection, varEditor: vscode.TextEditor, importInfo: ImportInfo) {
   const language = varEditor.document.languageId
 
   if (language === "astro") {
@@ -84,13 +139,13 @@ async function importExtractedSvg(selection: vscode.Selection, varEditor: vscode
           ? varEditor.document.positionAt(match.index + match[0].length).line + 1
           : 0
 
-      edit.insert(new Position(line, 0), `import ${fileName} from "./${fileName}.svg?raw"\n`)
-      edit.insert(selection.start, `<Fragment set:html={${fileName}} />\n`)
+      edit.insert(new Position(line, 0), `import ${importInfo.importName} from "${importInfo.importPath}?raw"\n`)
+      edit.insert(selection.start, `<Fragment set:html={${importInfo.importName}} />\n`)
     })
   } else {
     await varEditor.edit((edit) => {
-      edit.insert(new Position(0, 0), `import ${fileName} from "./${fileName}.svg?raw"\n`)
-      edit.insert(selection.start, `{${fileName}}\n`)
+      edit.insert(new Position(0, 0), `import ${importInfo.importName} from "${importInfo.importPath}?raw"\n`)
+      edit.insert(selection.start, `{${importInfo.importName}}\n`)
     })
   }
 }

@@ -4,7 +4,7 @@ const svgRegex = /\s*<\s*svg[^>]*>[\s\S]*<\/svg\s*>\s*/i
 
 export function preview(svg: string) {
   if (!svgRegex.test(svg)) {
-    vscode.window.showInformationMessage("Could not preview SVG.")
+    vscode.window.showErrorMessage("Please select a valid SVG element in the editor.")
     return
   }
 
